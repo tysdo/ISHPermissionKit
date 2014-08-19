@@ -65,6 +65,8 @@ typedef NS_ENUM(NSUInteger, ISHPermissionState) {
 
 typedef void (^ISHPermissionRequestCompletionBlock)(ISHPermissionRequest *request, ISHPermissionState state, NSError *error);
 
+typedef void (^ISHPermissionRequestExternalRequestBlock)(ISHPermissionRequest *request, ISHPermissionState state, NSError *error);
+
 /**
  *  Permission requests provide information about the current permission state of the associated category.
  *  It can also be used to request the user's permission via the system dialogue or to remember the user's
@@ -83,6 +85,10 @@ typedef void (^ISHPermissionRequestCompletionBlock)(ISHPermissionRequest *reques
 
 /// The permission category associated with the request.
 @property (nonatomic, readonly) ISHPermissionCategory permissionCategory;
+
+
+///Use this block in case we need to allow the client app to handle asking for the request
+@property (nonatomic, copy) ISHPermissionRequestExternalRequestBlock externalRequestBlock;
 
 /**
  *  Subclasses must implement this method to reflect the correct state.

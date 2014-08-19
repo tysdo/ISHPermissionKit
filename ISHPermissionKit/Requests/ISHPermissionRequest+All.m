@@ -13,6 +13,7 @@
 #import "ISHPermissionRequestPhotoLibrary.h"
 #import "ISHPermissionRequestPhotoCamera.h"
 #import "ISHPermissionRequestNotificationsLocal.h"
+#import "ISHPermissionRequestNotificationsRemote.h"
 #import "ISHPermissionRequestAccount.h"
 #import "ISHPermissionRequestHealth.h"
 #import "ISHPermissionRequestAddressBook.h"
@@ -28,7 +29,7 @@
         case ISHPermissionCategoryLocationAlways:
         case ISHPermissionCategoryLocationWhenInUse: {
             request = [ISHPermissionRequestLocation new];
-            break;
+            return request;
         }
             
         case ISHPermissionCategoryActivity:
@@ -52,6 +53,10 @@
             
         case ISHPermissionCategoryNotificationLocal:
             request = [ISHPermissionRequestNotificationsLocal new];
+            break;
+            
+        case ISHPermissionCategoryNotificationRemote:
+            request = [ISHPermissionRequestNotificationsRemote new];
             break;
             
         case ISHPermissionCategorySocialFacebook:
