@@ -74,7 +74,9 @@
     }
     
     // avoid asking again (system state does not correctly reflect if we asked already).
-    [self setInternalPermissionState:ISHPermissionStateDoNotAskAgain];
+//    [self setInternalPermissionState:ISHPermissionStateDoNotAskAgain];
+    [self setInternalAskState:YES]; //We've asked for permission from the user, so save that state.
+    
     
     self.completionBlock = completion;
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -82,16 +84,48 @@
                                                  name:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings
                                                object:nil];
     
-    [[UIApplication sharedApplication] registerUserNotificationSettings:self.noticationSettings];
+    
+    
+    if(self.externalRequestBlock) {
+        self.externalRequestBlock(self, self.permissionState, nil);
+    }
+    else {
+        [[UIApplication sharedApplication] registerUserNotificationSettings:self.noticationSettings];
+    }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resumeFromPrompt:) name:UIApplicationDidBecomeActiveNotification object:nil];
+
+    
+    
 }
 
 - (void)ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:(NSNotification *)note {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    ISHPermissionState state = [self permissionState];
+    
+    if(note && [note userInfo] && [[note userInfo] objectForKey:@"state"]) {
+        state = [[[note userInfo] objectForKey:@"state"] integerValue];
+    }
+    
     if (self.completionBlock) {
-        self.completionBlock(self, self.permissionState, nil);
+        self.completionBlock(self, state, nil);
         self.completionBlock = nil;
     }
 }
+
+- (void)resumeFromPrompt:(NSNotification *)note {
+    self.notificationSettings = [[UIApplication sharedApplication] currentUserNotificationSettings];
+    
+    
+    if (self.askState && (!self.notificationSettings || (self.notificationSettings.types == UIUserNotificationTypeNone))) {
+        //We've come back from the prompt, and have no notification type set.
+        NSNotification *noResponseNotification = [NSNotification notificationWithName:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings object:self userInfo:@{@"state" : @(ISHPermissionStateDenied)}];
+        [self ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:noResponseNotification];
+    }
+}
+
+
+
 #else
 
 - (instancetype)init {

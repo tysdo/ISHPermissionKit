@@ -10,7 +10,7 @@
 
 @interface ISHPermissionRequestNotificationsRemote : ISHPermissionRequest
 #ifdef __IPHONE_8_0
-@property (nonatomic) UIUserNotificationSettings *noticationSettings;
+@property (nonatomic) UIUserNotificationSettings *notificationSettings;
 #else
 @property (nonatomic) UIRemoteNotificationType notificationTypes;
 #endif
