@@ -73,7 +73,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     NSAssert(self.dataSource, @"Datasource should not be nil");
-    
+    [self.view setBackgroundColor:[UIColor clearColor]];
     // setup UI for first permission category:
     [self transitionToPermissionCategoryAtIndex:self.currentIndex];
 }

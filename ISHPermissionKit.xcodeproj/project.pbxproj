@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		79F1353219BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m in Sources */ = {isa = PBXBuildFile; fileRef = 79F1353019BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m */; };
+		79F1353319BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m in Sources */ = {isa = PBXBuildFile; fileRef = 79F1353019BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m */; };
+		79F1353419BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h in Headers */ = {isa = PBXBuildFile; fileRef = 79F1353119BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h */; };
+		79F1353519BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h in Headers */ = {isa = PBXBuildFile; fileRef = 79F1353119BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h */; };
 		DC1A80A3195B21DC0069235F /* ISHPermissionsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = DC1A80A1195B21DC0069235F /* ISHPermissionsViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC1A80A4195B21DC0069235F /* ISHPermissionsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DC1A80A2195B21DC0069235F /* ISHPermissionsViewController.m */; };
 		DC1A80A9195B22A10069235F /* ISHPermissionCategory.h in Headers */ = {isa = PBXBuildFile; fileRef = DC1A80A8195B22A10069235F /* ISHPermissionCategory.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -172,6 +176,8 @@
 /* Begin PBXFileReference section */
 		1B87C1BA1961AA5D001D85E7 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		1B87C1BB1961AA5D001D85E7 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		79F1353019BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISHPermissionRequestNotificationsRemote.m; sourceTree = "<group>"; };
+		79F1353119BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISHPermissionRequestNotificationsRemote.h; sourceTree = "<group>"; };
 		DC1A80A1195B21DC0069235F /* ISHPermissionsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISHPermissionsViewController.h; sourceTree = "<group>"; };
 		DC1A80A2195B21DC0069235F /* ISHPermissionsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISHPermissionsViewController.m; sourceTree = "<group>"; };
 		DC1A80A8195B22A10069235F /* ISHPermissionCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISHPermissionCategory.h; sourceTree = "<group>"; };
@@ -285,6 +291,8 @@
 		DC799EC1195C187700A0CA36 /* Requests */ = {
 			isa = PBXGroup;
 			children = (
+				79F1353019BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m */,
+				79F1353119BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h */,
 				DC1A80AA195B23640069235F /* ISHPermissionRequest.h */,
 				DC1A80AB195B23640069235F /* ISHPermissionRequest.m */,
 				DC799EC2195C19CD00A0CA36 /* ISHPermissionRequest+All.h */,
@@ -422,6 +430,7 @@
 				DC6A8A8719633180005AC5BD /* ISHPermissionRequestHealth.h in Headers */,
 				DC6A8A8B19633180005AC5BD /* ISHPermissionRequestNotificationsLocal.h in Headers */,
 				DC6A8AD419642793005AC5BD /* ISHPermissionRequestEventStore.h in Headers */,
+				79F1353519BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h in Headers */,
 				DC6A8A7F19633180005AC5BD /* ISHPermissionRequestViewController+Private.h in Headers */,
 				DC6A8A8119633180005AC5BD /* ISHPermissionRequestViewControllerDelegate.h in Headers */,
 				DC6A8A8519633180005AC5BD /* ISHPermissionRequest+Private.h in Headers */,
@@ -448,6 +457,7 @@
 				DC799EBF195C186100A0CA36 /* ISHPermissionRequestLocation.h in Headers */,
 				DCAEF7C1195C5B6B0074EB5B /* ISHPermissionRequestMotion.h in Headers */,
 				DC6A8AD319642793005AC5BD /* ISHPermissionRequestEventStore.h in Headers */,
+				79F1353419BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.h in Headers */,
 				DC799EB4195C0CF300A0CA36 /* ISHPermissionRequestViewController+Private.h in Headers */,
 				DC5E5BC3195DAD750092EAFD /* ISHPermissionRequestNotificationsLocal.h in Headers */,
 				DC1A80AC195B23640069235F /* ISHPermissionRequest.h in Headers */,
@@ -664,6 +674,7 @@
 				DC5E5BB0195D67500092EAFD /* ISHPermissionRequestMicrophone.m in Sources */,
 				DCAEF7E2195C60250074EB5B /* ISHPermissionsViewController.m in Sources */,
 				DC6A8AD619642793005AC5BD /* ISHPermissionRequestEventStore.m in Sources */,
+				79F1353319BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m in Sources */,
 				DCAEF7E3195C60250074EB5B /* ISHPermissionRequest+All.m in Sources */,
 				DCD56C7A1962AEDC00508F4A /* ISHPermissionRequestAccount.m in Sources */,
 				DCAEF7E4195C60250074EB5B /* ISHPermissionRequest.m in Sources */,
@@ -685,6 +696,7 @@
 				DC5E5BAF195D67500092EAFD /* ISHPermissionRequestMicrophone.m in Sources */,
 				DC1A80A4195B21DC0069235F /* ISHPermissionsViewController.m in Sources */,
 				DC6A8AD519642793005AC5BD /* ISHPermissionRequestEventStore.m in Sources */,
+				79F1353219BF912D00A93017 /* ISHPermissionRequestNotificationsRemote.m in Sources */,
 				DC1A80B1195B2C960069235F /* ISHPermissionRequestViewController.m in Sources */,
 				DCD56C791962AEDC00508F4A /* ISHPermissionRequestAccount.m in Sources */,
 				DC1A80AD195B23640069235F /* ISHPermissionRequest.m in Sources */,
