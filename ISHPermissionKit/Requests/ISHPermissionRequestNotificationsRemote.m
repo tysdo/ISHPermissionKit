@@ -13,10 +13,32 @@
 @property (nonatomic, assign) BOOL askState;
 
 - (ISHPermissionState)internalPermissionState;
-
++ (NSUInteger)systemMajorVersion;
 @end
 
 @implementation ISHPermissionRequestNotificationsRemote
+
++ (NSUInteger)systemMajorVersion {
+    
+    NSString *sysVer = [[UIDevice currentDevice] systemVersion];
+    NSUInteger systemVersion = 0;
+    NSString *majorVersion = nil;
+    
+    @try {
+        majorVersion = [[sysVer componentsSeparatedByString:@"."] objectAtIndex:0];
+    }
+    @catch (NSException *exception) {
+        
+    }
+    @finally {
+        if(majorVersion && majorVersion.length > 0) {
+            systemVersion = [majorVersion integerValue];
+        }
+        
+        return systemVersion;
+    }
+}
+
 
 - (void) setInternalAskState:(BOOL)askState {
     _askState = askState;
@@ -28,12 +50,16 @@
     return [askState boolValue];
 }
 
-#ifdef __IPHONE_8_0
 - (instancetype)init {
     self = [super init];
     if (self) {
-        self.notificationSettings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert
-                                                                      categories:nil];
+        if([[self class] systemMajorVersion] >= 8 && NSClassFromString(@"UIUserNotificationSettings")) {
+            self.notificationSettings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert
+                                                                          categories:nil];
+        }
+        else {
+            self.notificationTypes = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+        }
         
         _askState = [self internalAskState];
     }
@@ -50,107 +76,61 @@
 }
 
 - (ISHPermissionState)permissionState {
-    if (!NSClassFromString(@"UIUserNotificationSettings")) {
-        return ISHPermissionStateAuthorized;
+    
+    ISHPermissionState currentState = ISHPermissionStateUnknown;
+    BOOL denied = NO;
+    BOOL authorized = NO;
+    BOOL askAgain = NO;
+    
+    if([[self class] systemMajorVersion] >= 8 && [[UIApplication sharedApplication] respondsToSelector:@selector(currentUserNotificationSettings)]) {
+        UIUserNotificationSettings *notificationSettings = [[UIApplication sharedApplication] currentUserNotificationSettings];
+        
+        denied = (!notificationSettings || (notificationSettings.types == UIUserNotificationTypeNone && [self internalPermissionState] == ISHPermissionStateDoNotAskAgain) && [self internalAskState] == YES);
+        authorized = (notificationSettings.types != UIUserNotificationTypeNone);
+        askAgain = [self internalPermissionState] == ISHPermissionStateAskAgain || ([self internalPermissionState] == ISHPermissionStateUnknown && [self internalAskState] == NO);
+    }
+    else {
+        UIRemoteNotificationType types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+        denied = (types == UIRemoteNotificationTypeNone && [self internalAskState]);
+        authorized = (types > UIRemoteNotificationTypeNone);
+        askAgain = ([self internalPermissionState] == ISHPermissionStateAskAgain) || ([self internalPermissionState] == ISHPermissionStateUnknown && [self internalAskState] == NO);
+        
     }
     
-    UIUserNotificationSettings *noticationSettings = [[UIApplication sharedApplication] currentUserNotificationSettings];
-    
-    if (!noticationSettings || (noticationSettings.types == UIUserNotificationTypeNone)) {
-        return [self internalPermissionState];
+    if (denied) {
+        currentState = ISHPermissionStateDenied;
+    }
+    else if (authorized) {
+        currentState = ISHPermissionStateAuthorized;
+    }
+    else if (askAgain) {
+        currentState = ISHPermissionStateAskAgain;
     }
     
     // To be discussed: should types/categories differing from self.noticationSettings lead to denied state?
-    return ISHPermissionStateAuthorized;
+    return currentState;
 }
 
 - (void)requestUserPermissionWithCompletionBlock:(ISHPermissionRequestCompletionBlock)completion {
     NSAssert(completion, @"requestUserPermissionWithCompletionBlock requires a completion block");
-    NSAssert(self.notificationSettings, @"Requested notification settings should be set for request before requesting user permission");
-    // ensure that the app delegate implements the didRegisterMethods:
-    NSAssert([[[UIApplication sharedApplication] delegate] respondsToSelector:@selector(application:didRegisterUserNotificationSettings:)], @"AppDelegate must implement application:didRegisterUserNotificationSettings: and post notification ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings");
-    
-    ISHPermissionState currentState = self.permissionState;
-    if (!ISHPermissionStateAllowsUserPrompt(currentState)) {
-        completion(self, currentState, nil);
-        return;
+    if([[self class] systemMajorVersion] >= 8) {
+        NSAssert(self.notificationSettings, @"Requested notification settings should be set for request before requesting user permission");
     }
-    
-    // avoid asking again (system state does not correctly reflect if we asked already).
-    //    [self setInternalPermissionState:ISHPermissionStateDoNotAskAgain];
-    [self setInternalAskState:YES]; //We've asked for permission from the user, so save that state.
-    
-    
-    self.completionBlock = completion;
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:)
-                                                 name:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings
-                                               object:nil];
-    
-    
-    
-    if(self.externalRequestBlock) {
-        self.externalRequestBlock(self, self.permissionState, nil);
-    }
-    else {
-        [[UIApplication sharedApplication] registerUserNotificationSettings:self.notificationSettings];
-    }
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resumeFromPrompt:) name:UIApplicationDidBecomeActiveNotification object:nil];
-    
-    
-    
-}
-
-- (void)ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:(NSNotification *)note {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    ISHPermissionState state = [self permissionState];
-    
-    if (self.completionBlock) {
-        self.completionBlock(self, state, nil);
-        self.completionBlock = nil;
-    }
-}
-
-- (void)resumeFromPrompt:(NSNotification *)note {
-    self.notificationSettings = [[UIApplication sharedApplication] currentUserNotificationSettings];
-    
-    
-    if (self.askState && (!self.notificationSettings || (self.notificationSettings.types == UIUserNotificationTypeNone))) {
-        //We've come back from the prompt, and have no notification type set.
-        NSNotification *noResponseNotification = [NSNotification notificationWithName:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings object:self userInfo:@{@"state" : @(ISHPermissionStateDenied)}];
-        [self ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:noResponseNotification];
-    }
-}
-
-
-
-#else
-
-- (instancetype)init {
-    self = [super init];
-    if (self) {
-        _notificationTypes = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
-        _askState = [self internalAskState];
-    }
-    return self;
-}
-
-- (void)requestUserPermissionWithCompletionBlock:(ISHPermissionRequestCompletionBlock)completion {
-    NSAssert(completion, @"requestUserPermissionWithCompletionBlock requires a completion block");
     
     // ensure that the app delegate implements the didRegisterMethods:
+    
+    
     NSAssert([[[UIApplication sharedApplication] delegate] respondsToSelector:@selector(application:didRegisterForRemoteNotificationsWithDeviceToken:)], @"AppDelegate must implement application:didRegisterForRemoteNotificationsWithDeviceToken: and post notification ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings");
     
+    
     ISHPermissionState currentState = self.permissionState;
     if (!ISHPermissionStateAllowsUserPrompt(currentState)) {
         completion(self, currentState, nil);
         return;
     }
     
-    // avoid asking again (system state does not correctly reflect if we asked already).
-    //    [self setInternalPermissionState:ISHPermissionStateDoNotAskAgain];
     [self setInternalAskState:YES]; //We've asked for permission from the user, so save that state.
+    
     
     self.completionBlock = completion;
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -158,45 +138,28 @@
                                                  name:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings
                                                object:nil];
     
-    
-    //Might need to delegate this out to the client app, some people use 3rd party libs to register notifications (UrbanAirship, etc)
-    
     if(self.externalRequestBlock) {
         self.externalRequestBlock(self, self.permissionState, nil);
     }
     else {
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
+        
+        if([[self class] systemMajorVersion] >= 8 && [[UIApplication sharedApplication] respondsToSelector:@selector(registerUserNotificationSettings:)]) {
+            [[UIApplication sharedApplication] registerUserNotificationSettings:self.notificationSettings];
+        }
+        else {
+            [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
+        }
     }
+    
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resumeFromPrompt:) name:UIApplicationDidBecomeActiveNotification object:nil];
-}
-
-- (ISHPermissionState)permissionState {
     
-    ISHPermissionState state = ISHPermissionStateUnknown;
     
-    if(self.notificationTypes & UIRemoteNotificationTypeAlert) {
-        state = ISHPermissionStateAuthorized;
-    }
-    else {
-        //If we've already prompted the user, and the alert type is none, then we can assume they denied (or manually turned off) notifications
-        state = self.askState ? ISHPermissionStateDenied : ISHPermissionStateUnknown;
-    }
     
-    return state;
-}
-
-- (void)resumeFromPrompt:(NSNotification *)note {
-    self.notificationTypes = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
-    
-    if(self.askState && self.notificationTypes == UIRemoteNotificationTypeNone) {
-        //We've come back from the prompt, and have no notification type set.
-        NSNotification *noResponseNotification = [NSNotification notificationWithName:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings object:self userInfo:@{@"state" : @(ISHPermissionStateDenied)}];
-        [self ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:noResponseNotification];
-    }
 }
 
 - (void)ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:(NSNotification *)note {
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     ISHPermissionState state = [self permissionState];
     
@@ -208,11 +171,26 @@
         self.completionBlock(self, state, nil);
         self.completionBlock = nil;
     }
+    
 }
 
-- (BOOL)allowsConfiguration {
-    return YES;
+- (void)resumeFromPrompt:(NSNotification *)note {
+    BOOL noResponse = NO;
+    
+    if([[self class] systemMajorVersion] >= 8  && [[UIApplication sharedApplication] respondsToSelector:@selector(currentUserNotificationSettings)]) {
+        self.notificationSettings = [[UIApplication sharedApplication] currentUserNotificationSettings];
+        noResponse = self.askState && (!self.notificationSettings || (self.notificationSettings.types == UIUserNotificationTypeNone));
+    }
+    else {
+        self.notificationTypes = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+        noResponse = self.askState && self.notificationTypes == UIRemoteNotificationTypeNone;
+    }
+    
+    if (noResponse) {
+        //We've come back from the prompt, and have no notification type set.
+        NSNotification *noResponseNotification = [NSNotification notificationWithName:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings object:self userInfo:@{@"state" : @(ISHPermissionStateDenied)}];
+        [self ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings:noResponseNotification];
+    }
 }
 
-#endif
 @end

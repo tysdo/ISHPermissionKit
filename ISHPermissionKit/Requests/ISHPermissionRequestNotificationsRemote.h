@@ -9,9 +9,6 @@
 #import "ISHPermissionRequest.h"
 
 @interface ISHPermissionRequestNotificationsRemote : ISHPermissionRequest
-#ifdef __IPHONE_8_0
 @property (nonatomic) UIUserNotificationSettings *notificationSettings;
-#else
 @property (nonatomic) UIRemoteNotificationType notificationTypes;
-#endif
 @end
