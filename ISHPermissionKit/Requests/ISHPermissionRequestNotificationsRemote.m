@@ -81,20 +81,25 @@
     BOOL denied = NO;
     BOOL authorized = NO;
     BOOL askAgain = NO;
+    BOOL dontAsk = NO;
     
-    if([[self class] systemMajorVersion] >= 8 && [[UIApplication sharedApplication] respondsToSelector:@selector(currentUserNotificationSettings)]) {
-        UIUserNotificationSettings *notificationSettings = [[UIApplication sharedApplication] currentUserNotificationSettings];
-        
-        denied = (!notificationSettings || (notificationSettings.types == UIUserNotificationTypeNone && [self internalPermissionState] == ISHPermissionStateDoNotAskAgain) && [self internalAskState] == YES);
-        authorized = (notificationSettings.types != UIUserNotificationTypeNone);
-        askAgain = [self internalPermissionState] == ISHPermissionStateAskAgain || ([self internalPermissionState] == ISHPermissionStateUnknown && [self internalAskState] == NO);
-    }
-    else {
-        UIRemoteNotificationType types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
-        denied = (types == UIRemoteNotificationTypeNone && [self internalAskState]);
-        authorized = (types > UIRemoteNotificationTypeNone);
-        askAgain = ([self internalPermissionState] == ISHPermissionStateAskAgain) || ([self internalPermissionState] == ISHPermissionStateUnknown && [self internalAskState] == NO);
-        
+    dontAsk = [self internalPermissionState] == ISHPermissionStateDoNotAskAgain;
+    
+    if(!dontAsk) {
+        if([[self class] systemMajorVersion] >= 8 && [[UIApplication sharedApplication] respondsToSelector:@selector(currentUserNotificationSettings)]) {
+            UIUserNotificationSettings *notificationSettings = [[UIApplication sharedApplication] currentUserNotificationSettings];
+            
+            denied = (!notificationSettings || (notificationSettings.types == UIUserNotificationTypeNone && [self internalAskState]));
+            authorized = (notificationSettings.types != UIUserNotificationTypeNone);
+            askAgain = [self internalPermissionState] == ISHPermissionStateAskAgain || ([self internalPermissionState] == ISHPermissionStateUnknown && ![self internalAskState]);
+        }
+        else {
+            UIRemoteNotificationType types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+            denied = (types == UIRemoteNotificationTypeNone && [self internalAskState]);
+            authorized = (types > UIRemoteNotificationTypeNone);
+            askAgain = ([self internalPermissionState] == ISHPermissionStateAskAgain) || ([self internalPermissionState] == ISHPermissionStateUnknown && ![self internalAskState]);
+            
+        }
     }
     
     if (denied) {
@@ -105,6 +110,9 @@
     }
     else if (askAgain) {
         currentState = ISHPermissionStateAskAgain;
+    }
+    else if (dontAsk) {
+        currentState = ISHPermissionStateDoNotAskAgain;
     }
     
     // To be discussed: should types/categories differing from self.noticationSettings lead to denied state?
