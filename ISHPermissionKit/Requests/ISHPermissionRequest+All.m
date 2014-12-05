@@ -15,7 +15,6 @@
 #import "ISHPermissionRequestNotificationsLocal.h"
 #import "ISHPermissionRequestNotificationsRemote.h"
 #import "ISHPermissionRequestAccount.h"
-#import "ISHPermissionRequestHealth.h"
 #import "ISHPermissionRequestAddressBook.h"
 #import "ISHPermissionRequestEventStore.h"
 #import "ISHPermissionRequest+Private.h"
@@ -34,9 +33,6 @@
             
         case ISHPermissionCategoryActivity:
             request = [ISHPermissionRequestMotion new];
-            break;
-        case ISHPermissionCategoryHealth:
-            request = [ISHPermissionRequestHealth new];
             break;
             
         case ISHPermissionCategoryMicrophone:
