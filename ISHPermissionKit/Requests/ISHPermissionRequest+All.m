@@ -29,7 +29,7 @@
         case ISHPermissionCategoryLocationAlways:
         case ISHPermissionCategoryLocationWhenInUse: {
             request = [ISHPermissionRequestLocation new];
-            return request;
+            break;
         }
             
         case ISHPermissionCategoryActivity:
