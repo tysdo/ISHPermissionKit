@@ -23,7 +23,6 @@
 
 + (instancetype)permissionsViewControllerWithCategories:(NSArray *)categories dataSource:(id <ISHPermissionsViewControllerDataSource>)dataSource {
     ISHPermissionsViewController *vc = [ISHPermissionsViewController new];
-    
     [vc setDataSource:dataSource];
     [vc setupRequestablePermissionsCategoriesFromArray:categories];
     
@@ -74,7 +73,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     NSAssert(self.dataSource, @"Datasource should not be nil");
-    
+    [self.view setBackgroundColor:[UIColor clearColor]];
     // setup UI for first permission category:
     [self transitionToPermissionCategoryAtIndex:self.currentIndex];
 }
@@ -117,7 +116,7 @@
         ISHPermissionCategory category = [categoryObj integerValue];
         ISHPermissionRequest *request = [ISHPermissionRequest requestForCategory:category];
         
-        if (dataSourceConfiguresRequests && request.allowsConfiguration && ([request permissionState] != ISHPermissionStateUnsupported)) {
+        if (dataSourceConfiguresRequests && request.allowsConfiguration) {
             [self.dataSource permissionsViewController:self didConfigureRequest:request];
         }
         
@@ -128,7 +127,6 @@
             [requests addObject:request];
         }
     }
-    
     [self setPermissionRequests:[NSArray arrayWithArray:requests]];
     [self setPermissionCategories:[requestableCategories copy]];
 }
@@ -140,7 +138,6 @@
 
 - (void)layoutChildViewControllerView:(UIView *)childView {
     UIView *containerView = self.view;
-    
     [childView setBounds:containerView.bounds];
     [childView setCenter:CGPointMake(CGRectGetMidX(containerView.bounds), CGRectGetMidY(containerView.bounds))];
 }
@@ -222,6 +219,15 @@
     [fromViewController.view removeFromSuperview];
     [fromViewController removeFromParentViewController];
     [self setCurrentViewController:toViewController];
+}
+
+
+- (BOOL)shouldAutorotate {
+    return self.presentingViewController.shouldAutorotate;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    return self.presentingViewController.supportedInterfaceOrientations;
 }
 
 @end

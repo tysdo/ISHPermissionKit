@@ -107,6 +107,20 @@ typedef NS_ENUM(NSUInteger, ISHPermissionCategory) {
      *  Permission required to access the user's reminders.
      */
     ISHPermissionCategoryReminders = 8250,
+    /**
+     *  Permission required to schedule local notifications.
+     *  @note Requests for this permission might require further
+     *        configuration via the ISHPermissionsViewControllerDataSource.
+     *
+     *  @warning Your app delegate will need to implement the following lines:
+     *  @code
+     *  - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
+     *       [[NSNotificationCenter defaultCenter] postNotificationName:ISHPermissionNotificationApplicationDidRegisterUserNotificationSettings
+     *                                                           object:self];
+     *  }
+     *  @endcode
+     */
+    ISHPermissionCategoryNotificationRemote = 6150,
 };
 
 
@@ -133,6 +147,8 @@ static inline NSString *ISHStringFromPermissionCategory(ISHPermissionCategory ca
             return @"ISHPermissionCategoryPhotoCamera";
         case ISHPermissionCategoryNotificationLocal:
             return @"ISHPermissionCategoryNotificationLocal";
+        case ISHPermissionCategoryNotificationRemote:
+            return @"ISHPermissionCategoryNotificationRemote";
         case ISHPermissionCategorySocialFacebook:
             return @"ISHPermissionCategorySocialFacebook";
         case ISHPermissionCategorySocialTwitter:
